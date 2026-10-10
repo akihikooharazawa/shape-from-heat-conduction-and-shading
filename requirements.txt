@@ -1,0 +1,37 @@
+# Core deep learning
+torch==1.13.0
+pytorch3d==0.7.2
+
+# Scientific computing
+numpy==1.26.4
+scipy==1.13.1
+scikit-image==0.24.0
+
+# Computer vision
+opencv-python>=4.5.5.64
+opencv-contrib-python>=4.5.5.64
+
+# Geometry
+libigl==2.5.1
+trimesh==3.23.5
+
+# Visualization
+matplotlib==3.9.4
+plotly==5.24.1
+ipywidgets>=7.7.0
+imageio==2.37.0
+
+# Utilities
+tqdm>=4.64.1
+gpytoolbox>=0.0.6
+zstandard>=0.18.0
+
+# Dev tools
+tensorboard>=2.9.0
+jupyter>=1.0.0
+
+# Simulation only (optional)
+# mitsuba  -- install separately: https://mitsuba.readthedocs.io
+
+# Note: PyTorch with CUDA 11.6 should be installed separately using:
+# conda install pytorch==1.13.0 torchvision==0.14.0 torchaudio==0.13.0 pytorch-cuda=11.6 -c pytorch -c nvidia

@@ -1,0 +1,19 @@
+__pycache__/
+*.py[cod]
+*.pyo
+.ipynb_checkpoints/
+
+# Data (downloaded, see scripts/download_data.sh)
+DATA/obj_study_raw/*
+!DATA/obj_study_raw/.gitkeep
+DATA/sim-heat/*
+!DATA/sim-heat/.gitkeep
+
+# Results and logs
+results/*
+!results/.gitkeep
+tb-logs/*
+!tb-logs/.gitkeep
+
+# OS
+.DS_Store
