@@ -64,12 +64,17 @@ if [ "$1" = "--list" ]; then
     echo "Objects: $(python3 -c 'from config.real_objects import OBJECTS; print(" ".join(sorted(OBJECTS)))')"
     echo
     for f in $(objects_for --all); do
-        size=$(curl -fsIL "$BASE/$f" 2>/dev/null \
-               | awk 'BEGIN{IGNORECASE=1} /^content-length:/{n=$2} END{print n+0}')
-        if [ "$size" -gt 0 ]; then
+        # No -f: the headers of a 404 are wanted too, to tell "missing" from
+        # "no network".
+        hdr=$(curl -sIL "$BASE/$f" 2>/dev/null)
+        code=$(printf '%s' "$hdr" | awk 'BEGIN{IGNORECASE=1} /^HTTP\//{c=$2} END{print c+0}')
+        size=$(printf '%s' "$hdr" | awk 'BEGIN{IGNORECASE=1} /^content-length:/{n=$2} END{print n+0}')
+        if [ "$code" = "200" ] && [ "$size" -gt 0 ]; then
             printf "  %-20s %6.1f MB\n" "$f" "$(echo "$size/1048576" | bc -l)"
+        elif [ "$code" = "0" ]; then
+            printf "  %-20s could not reach %s\n" "$f" "$BASE"
         else
-            printf "  %-20s not in release %s\n" "$f" "$TAG"
+            printf "  %-20s not published here\n" "$f"
         fi
     done
     exit 0
