@@ -5,6 +5,11 @@
 # downloaded. They are attached to a GitHub release rather than committed,
 # because they are tens to hundreds of megabytes each.
 #
+# heart, droplet and paintedbear were captured for this paper and are in the
+# release. bear, bunny, soda_can and sphere come from the shape-from-heat
+# dataset and are several hundred megabytes each, so they are not re-hosted
+# here; asking for one prints where to get it.
+#
 #   ./scripts/download_data.sh                 # paintedbear, the default object
 #   ./scripts/download_data.sh bear sphere     # the objects you name
 #   ./scripts/download_data.sh --all           # every object
@@ -83,7 +88,19 @@ for f in $files; do
     # -C - resumes a partial file, so an interrupted run can just be repeated.
     if ! curl -fL --retry 3 -C - --progress-bar -o "$DEST/$f" "$BASE/$f"; then
         rm -f "$DEST/$f"
-        echo "  FAILED   $f  (not in release $TAG, or no network)" >&2
+        case "$f" in
+            bear-*|bunny.npz|soda_can-*|sphere-*)
+                echo "  not in release: $f" >&2
+                echo "    This one was captured for the shape-from-heat dataset and is" >&2
+                echo "    distributed there rather than re-hosted here:" >&2
+                echo "    https://github.com/nnsriram97/shape-from-heat" >&2
+                echo "    Download it, then run scripts/prepare_data.py to give it the" >&2
+                echo "    short name above (SOURCE_RECORDINGS says which capture it is)." >&2
+                ;;
+            *)
+                echo "  FAILED   $f  (not in release $TAG, or no network)" >&2
+                ;;
+        esac
     fi
 done
 

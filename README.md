@@ -144,13 +144,16 @@ It reads which recordings an object needs from `config/real_objects.py`, so the
 script and the notebook cannot drift apart, and it skips anything already
 downloaded (an interrupted download resumes).
 
-`bear`, `bunny`, `soda_can` and `sphere` were captured for the
-[shape-from-heat](https://github.com/nnsriram97/shape-from-heat) dataset;
-`heart`, `droplet` and `paintedbear` were captured for this paper. Each
-recording is distributed under a short name (`bear-0.npz`, `paintedbear.npz`,
-...); `SOURCE_RECORDINGS` in `config/real_objects.py` records which capture it
-came from, and `scripts/prepare_data.py` renames the original captures to those
-names if you obtained them some other way.
+`heart`, `droplet` and `paintedbear` were captured for this paper and are in
+the release. `bear`, `bunny`, `soda_can` and `sphere` come from the
+[shape-from-heat](https://github.com/nnsriram97/shape-from-heat) dataset and run
+to several hundred megabytes each, so they are not re-hosted here — asking for
+one prints where to get it.
+
+Each recording is distributed under a short name (`bear-0.npz`,
+`paintedbear.npz`, ...). `SOURCE_RECORDINGS` in `config/real_objects.py` records
+which capture it came from, and `scripts/prepare_data.py` renames the original
+captures to those names when you obtained them elsewhere.
 
 | Location | Format | Description |
 |---|---|---|
