@@ -1,5 +1,5 @@
 #!/bin/bash
-# Fetch the thermal videos and object masks used by notebooks/real_02_reconstruct.ipynb.
+# Fetch the thermal videos and object masks used by notebooks/real.ipynb.
 #
 # bear, bunny, soda_can and sphere were captured for the shape-from-heat
 # dataset and are kept in its public folders, which are the defaults below.

@@ -625,9 +625,7 @@ class ShapeOptimizationWrapper(OptimizationWrapper):
 
             ### Optimize Heat Source ###
             if self.params.optim_heat_source and self.heat_source_opti is None:
-                # heat_source_opti = torch.rand(self.u_real_atverts_pt[:, :-1].shape, device=device, requires_grad=True)
                 self.heat_source_opti = torch.rand([self.u_real_atverts_pt.shape[0], 1, self.verts_sim_pt.shape[0]], device=self.device, requires_grad=True)
-                # self.heat_lsteps = to_differential(self.M_lsteps, self.heat_source_opti.permute(2,0,1).view(self.verts_sim_pt.shape[0], -1))
                 self.heat_source_shape = self.heat_source_opti.shape
             elif self.params.optim_heat_source and not opti_params.heat_source_opti:
                 self.heat_source_opti.requires_grad = False
@@ -972,11 +970,6 @@ class ShapeOptimizationWrapper(OptimizationWrapper):
             losses = []
 
         # Eta
-        # if shading_img.ndim == 3:
-        #     shading_img = shading_img[0]
-        # elif shading_img.ndim == 2:
-        #     shading_img = shading_img
-
         if shading_img.ndim == 3:
             shading_img_2d = shading_img[0]
         else:
@@ -984,7 +977,7 @@ class ShapeOptimizationWrapper(OptimizationWrapper):
         if shading_img_2d.shape != (H, W):
             shading_img_2d = cv2.resize(
                 shading_img_2d.astype(np.float32),
-                (W, H),  # cv2は (width, height)
+                (W, H),  # cv2 expects (width, height)
                 interpolation=cv2.INTER_LINEAR)
         eta_img = np.nan_to_num(shading_img_2d.astype(np.float32), nan=0.0)
         target_eta = eta_img[1:H-1, 1:W-1]

@@ -97,7 +97,6 @@ def get_vf_for_obj(obj_name, root_folder=None, norm=True, scale=1.0, padding=0):
         raise FileNotFoundError(error_msg)
     
     verts, faces = igl.read_triangle_mesh(str(filepath))
-    # print(f"Loaded mesh from {filepath}")
 
     if norm is True:
         center = verts.mean(0)
@@ -618,20 +617,6 @@ def compute_p_q_from_w_v3(w):
 
     p1[idx], p2[idx] =  P, -P
     q1[idx], q2[idx] = -sgn_w3 * Q,  sgn_w3 * Q
-
-    # # Debug prints
-    # print("disc min/max:", disc.min(), disc.max())
-    # print("valid count:", np.count_nonzero(valid), "/", valid.size)
-
-    # # p_sq, q_sq
-    # print("p_sq min/max:", p_sq.min(), p_sq.max())
-    # print("q_sq min/max:", q_sq.min(), q_sq.max())
-    # print("valid2 count:", np.count_nonzero(valid2), "/", valid2.size)
-
-    # # Intermediate values
-    # print("w1+w3 min/max:", (w1v+w3v).min(), (w1v+w3v).max())
-    # print("w2+w3 min/max:", (w2v+w3v).min(), (w2v+w3v).max())
-    # print("x min/max:", x.min(), x.max())
 
     return (p1, q1), (p2, q2)
 
@@ -1262,10 +1247,7 @@ def extract_candidates_v3(L, eta_gt_2d, height, width, ps_s, qs_s, iters=None):
             if abs(e1 - e2) < 0.03:
                 ambiguous_map[r, c] = 1
 
-    # 4. FC refinement (Optional)
-    # sign_map = refine_with_fc(P, Q, sign_map, iters)
-
-    # 5. Make subset
+    # 4. Make subset
     subset = []
     for r in range(1, H-1):
         for c in range(1, W-1):
@@ -1375,9 +1357,8 @@ def optimize_pq(p_init, q_init, idx_i_torch, idx_a_torch, idx_b_torch, idx_d_tor
 # ---------------------------------------------------------------------------
 # Analysis-by-synthesis helpers
 #
-# Used by notebooks/sim_05_analysis_by_synthesis.ipynb: recover the light
-# source by RANSAC over reverse photometric stereo, then fix the per-pixel
-# convex/concave sign of (p, q) against the measured shading.
+# Recover the light source by RANSAC over reverse photometric stereo, then fix
+# the per-pixel convex/concave sign of (p, q) against the measured shading.
 # ---------------------------------------------------------------------------
 
 def xyz_to_pq_torch(x, y, z):
@@ -1394,7 +1375,6 @@ def t_and_reference_to_unit_vector_torch(t, eta, s_vec):
                           torch.sin(t),
                           torch.zeros_like(t)], dim=1)
     orthogonal_component = vec_2d @ R.T
-    #r = torch.sqrt(1.0 - eta**2)
     r = torch.sqrt(torch.clamp(1.0 - eta**2, min=0.0))
     s_norm_2d = s_norm.unsqueeze(0)
     n_t = -eta.unsqueeze(1)*s_norm_2d + r.unsqueeze(1)*orthogonal_component

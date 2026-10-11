@@ -6,8 +6,11 @@ __pycache__/
 # Data (downloaded, see scripts/download_data.sh)
 DATA/obj_study_raw/*
 !DATA/obj_study_raw/.gitkeep
-DATA/sim-heat/*
-!DATA/sim-heat/.gitkeep
+DATA/obj_study_proc/opti_results*.pkl
+
+# Generated camera meshes (written by construct_camera_mesh)
+objs/*_camera_*.obj
+objs/*_mask.npy
 
 # Results and logs
 results/*

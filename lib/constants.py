@@ -9,8 +9,11 @@ This module provides constants and configuration parameters for:
 
 import numpy as np
 
+# The recording distributed with this repository was captured with the
+# co-located Boson; 'Boson' and 'Boson+' are the other supported cameras.
+CAMERA = 'Boson-Colocated'
 # CAMERA = 'Boson'
-CAMERA = 'Boson'
+# CAMERA = 'Boson+'
 # CAMERA = 'Boson+'
 FOCUS_DISTANCE: float = 368.3
 HFOV: float = 24.3  # degrees
@@ -18,8 +21,7 @@ VFOV: float = 19.5  # degrees
 IMAGE_WIDTH_METRIC = 2*FOCUS_DISTANCE * \
     np.tan(np.deg2rad(HFOV/2))  # 158.58582759
 
-SIGMA = 5.6704e-8/(1000**2) # W/(mm^2*K^4)
-# SIGMA = 5.6704e-8 # W/(m^2*K^4)
+SIGMA = 5.6704e-8/(1000**2)  # W/(mm^2*K^4)
 EPSILON = 0.90
 AMBIENT_TEMP: float = 295.372  # Kelvin
 OBJECT_TEMP = AMBIENT_TEMP
@@ -62,11 +64,11 @@ Absorptivity = {
 }
 
 TDiff = {
-    "aluminium": 97.0, #97, #1.0, #97,
+    "aluminium": 97.0,
     "aluminium-6061": 64,
     "glass" : 0.34,
     "pvc": 0.17, # conductivity - 0.2 W/mK,
-    "polystyrene": 0.5, #0.5,
+    "polystyrene": 0.5,
     "copper": 111,
     "wood": 0.082,
     "steel": 4.2,
@@ -77,7 +79,7 @@ TDiff = {
 # reflected energy
 Emiss = EPSILON
 distance = 0.4
-TRefl = 22.22 #21.85
+TRefl = 22.22
 
 # atmospheric attenuation
 TAtm = 295.37  # 22.22°C in Kelvin
@@ -85,7 +87,6 @@ Tau = 1.0
 
 # external optics
 TExtOptics = 20
-# TransmissionExtOptics = 1.0
 TransmissionExtOptics = 0.94
 
 # Boson+ RBFO
@@ -95,19 +96,23 @@ TransmissionExtOptics = 0.94
 # R: 1080000.0, B: 1524.0, F: 1.0, O: 15500.0
 R_const = {
     "Boson": 1080000.0,
+    "Boson-Colocated": 2000000,
     "Boson+": 6.23748836e+03
 }
 B_const = {
     "Boson": 1524.0,
+    "Boson-Colocated": 2137.05,
     "Boson+": 9.15243088e+01
 }
 F_const = {
     "Boson": 1.0,
+    "Boson-Colocated": 219.46,
     "Boson+": 1.08100666e+00
 }
 
 O_const = {
     "Boson": 15500.0,
+    "Boson-Colocated": 21470.7402,
     "Boson+": 1.95966142e-01
 }
 

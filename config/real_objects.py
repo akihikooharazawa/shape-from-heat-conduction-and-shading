@@ -2,7 +2,7 @@
 
 Every value here was taken from the per-object notebooks that produced the
 results in the paper, so that a single notebook
-(``notebooks/real_02_reconstruct.ipynb``) reproduces each object instead of
+(``notebooks/real.ipynb``) reproduces each object instead of
 keeping one near-duplicate notebook per object.
 
 ``get_config(obj, baseline=True)`` returns the comparison setting: shape from

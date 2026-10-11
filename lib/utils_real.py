@@ -66,7 +66,6 @@ def counts2temp(data_counts, camera):
     
     data_obj_signal = data_counts.astype(float)
     data_temp = (B / np.log(R/((K1 * data_obj_signal) - K2 - O) + F))
-    # print(np.amin(data_counts), np.amax(data_counts), np.amin(data_temp), np.amax(data_temp), data_obj_signal.shape)
     
     return data_temp
 ## Get a perspective Camera
@@ -124,14 +123,6 @@ def compute_face_normals_torch(verts, faces, normalize=False):
 def compute_vertex_normals_torch(verts, faces, camera_loc=torch.tensor([0,0,100.0], device='cuda')):
     
     face_normals = compute_face_normals_torch(verts, faces)
-    # camera_dir = camera_loc[None, :] - verts
-
-    # # Make sure the face normals point in the same direction
-    # pos_norms = torch.sum(cross_prod * camera_dir[faces[:, 0]], dim=-1, keepdim=True)
-    # neg_norms = torch.sum(-cross_prod * camera_dir[faces[:,0]], dim=-1, keepdim=True)
-    # face_normals = torch.where(pos_norms >= neg_norms, cross_prod, -cross_prod)
-
-    # face_normals = torch.where(torch.sum(cross_prod * verts_faces[:, 0], dim=-1, keepdim=True) >= 0, cross_prod, -cross_prod)
 
     # Compute the vertex normals by averaging the face normals based on triangle area
     face_normals_stacked = torch.stack([face_normals, face_normals, face_normals], dim=1)
@@ -168,7 +159,6 @@ def increase_image_border(images, border_width=1, bg_value=100):
     xdiff = skimage.filters.gaussian(xdiff, sigma=5.8, preserve_range=True, truncate=2.0, cval=0.0)
     ydiff = skimage.filters.gaussian(ydiff, sigma=5.8, preserve_range=True, truncate=2.0, cval=0.0)
 
-    # print(xdiff.shape, ydiff.shape, mask_img.shape)
     for k in range(border_width):
         s1 = np.roll(mask_img, 1, axis=-1) & ~mask_img
         s2 = np.roll(mask_img, -1, axis=-1) & ~mask_img

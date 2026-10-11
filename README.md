@@ -24,10 +24,10 @@ complex shapes and analyze its performance in the presence of noise, as well as
 on a noisy single thermal video of real-world objects with complex shapes and
 material properties, including varying albedo.
 
-This repository holds the simulations and the real thermal-video reconstructions
-reported in the paper. In the code the method is abbreviated **SFLS**, shape
-from Laplacian and shading, where the Laplacian is the one recovered from heat
-conduction.
+This repository holds a runnable example of each setting in the paper: the
+method on a simulated shape, and the method on a single real thermal video. In
+the code it is abbreviated **SFLS**, shape from Laplacian and shading, where the
+Laplacian is the one recovered from heat conduction.
 
 ---
 
@@ -67,52 +67,54 @@ pip install "git+https://github.com/facebookresearch/pytorch3d.git@stable"
 pip install -r requirements.txt
 ```
 
-### 6. (Simulation only) Install Mitsuba 3
-
-```bash
-pip install mitsuba
-```
-
 ---
 
 ## Notebooks
 
-Run them in the order below; each one states what it needs at the top.
+Two notebooks, one per setting. Each runs the method end to end and is meant to
+be read top to bottom; they are the representative examples rather than the full
+set of experiments in the paper.
 
-### Simulation
+### `notebooks/sim.ipynb` — simulation
 
-| Notebook | What it does |
-|---|---|
-| `sim_01_pipeline.ipynb` | The method end to end on one object: light source estimation, then normals from the Laplacian and shading |
-| `sim_02_experiments.ipynb` | Sweeps over objects, noise levels, BRDF, albedo and interreflection (feature flags at the top) |
-| `sim_03_light_source_estimation.ipynb` | Light source direction from the Laplacian alone, and its error maps |
-| `sim_04_propagation_sfs.ipynb` | Resolving the convex/concave ambiguity by BFS propagation over the image, with the visiting order visualised |
-| `sim_05_analysis_by_synthesis.ipynb` | Analysis by synthesis: RANSAC over reverse photometric stereo, then per-pixel sign correction against the measured shading |
-| `sim_06_depth_profile.ipynb` | Depth profiles through the reconstructions, for the BRDF / albedo / interreflection runs |
+Ground-truth Laplacian and shading of a mesh, then the method:
 
-### Real thermal video
+1. **Light source estimation** — near-planar patches give candidate normals,
+   whose two solutions are separated by shading; RANSAC over reverse
+   photometric stereo and an iterative refinement give the source direction.
+2. **Dense normal initialization** — per pixel, the convex/concave candidate
+   that agrees with the shading is selected; invalid and ambiguous pixels are
+   filled.
+3. **Global refinement** — Adam on the Laplacian and shading residuals.
+4. **Results** — normal and shading error against ground truth.
 
-| Notebook | What it does |
-|---|---|
-| `real_01_create_mask.ipynb` | Draw the object mask on a thermal video |
-| `real_02_reconstruct.ipynb` | Reconstruct one object. `OBJECT` picks the recording, `BASELINE = True` runs the comparison setting |
-| `real_03_depth_profile.ipynb` | Depth profiles of a reconstruction against ground truth and against the comparison setting |
-| `real_04_laplacian_vis.ipynb` | Visualise the recovered Shape Laplacian |
-| `real_05_temperature_gradient_vis.ipynb` | Visualise the measured temperature gradients |
+`sim_params` at the top selects the shape (`obj_name`, any `.obj` in `objs/`)
+and the light source (`theta_s`, `phi_s`).
 
-`real_02_reconstruct.ipynb` reads every per-object value — recordings,
-hyper-parameters, number of shape/temperature loops — from
-`config/real_objects.py`:
+### `notebooks/real.ipynb` — real thermal video
+
+The same method on a single thermal video: the Shape Laplacian is recovered
+from heat conduction, then shape optimization and the shading stage alternate.
+Two settings at the top:
 
 ```python
-OBJECT = "bear"      # bear, bunny, droplet, heart, paintedbear, soda_can, sphere
-BASELINE = False     # True: heat conduction only, shading stage switched off
+OBJECT = "paintedbear"   # bear, bunny, droplet, heart, paintedbear, soda_can, sphere
+BASELINE = False         # True: heat conduction only, shading stage switched off
 ```
 
-The comparison setting (`BASELINE = True`) is shape from heat conduction alone:
-the third stage, which enforces the shading constraint, never runs, and the
-hyper-parameters tuned for that setting are applied. It is recorded for `bear`,
-`heart`, `paintedbear`, `soda_can` and `sphere`.
+`BASELINE = True` is the comparison setting, shape from heat conduction alone:
+the shading stage never runs and the hyper-parameters tuned for that setting are
+applied. It is recorded for `bear`, `heart`, `paintedbear`, `soda_can` and
+`sphere`.
+
+Every per-object value — recordings, hyper-parameters, number of
+shape/temperature loops — lives in `config/real_objects.py`, taken from the runs
+reported in the paper. `paintedbear` is the default because its mask ships with
+this repository; the other objects need the dataset below.
+
+`lib/propagation.py` holds the BFS propagation variant of step 2, which
+resolves the sign pixel by pixel along a scan order instead of filling. Neither
+notebook uses it; it is kept because it is part of the method.
 
 #### Monitor training with TensorBoard
 
@@ -127,7 +129,8 @@ ssh -L 6006:localhost:6006 user@your-server
 
 ## Data
 
-The thermal videos are not in this repository. To fetch them:
+`real.ipynb` needs one thermal video. The mask for the default object
+(`paintedbear`) is in this repository; the videos are not. To fetch them:
 
 ```bash
 pip install gdown
@@ -155,8 +158,7 @@ python3 scripts/prepare_data.py --dry-run
 | `DATA/obj_study_raw/` | `.npz` or `.npz.zst` | Raw thermal video frames |
 | `DATA/obj_study_proc/` | `*_mask.png`, `*_mask.pkl` | Binary object mask |
 | `DATA/obj_study_proc/` | `opti_results*.pkl` | Laplacian stage checkpoint, written by the first shape/temperature loop and read by later ones |
-| `DATA/sim-heat/` | `.pkl` | Heat simulation results, read by `sim_02_experiments.ipynb` when `USE_HEAT_SIM` is on |
-| `objs/` | `.obj` | Reference meshes for the simulations |
+| `objs/` | `.obj` | Meshes for `sim.ipynb` (`igea-60kf`, `concave_wave`); any `.obj` dropped here can be selected by `obj_name` |
 | `results/<obj>/` | `<exp_name>.pkl` | Mesh vertex sequence (`verts_seq`, `faces`) |
 
 ---
@@ -171,17 +173,18 @@ shape-from-heat-conduction-and-shading/
 │   ├── utils_sim.py        # Simulation pipeline
 │   ├── utils_real.py       # Real-data pipeline
 │   ├── optimization.py     # Shape & temperature optimization (real data)
-│   ├── propagation.py      # BFS propagation over the image
-│   ├── constants.py        # Camera and physical constants
-│   └── mitsuba_scenes.py   # Mitsuba scenes for BRDF / albedo / interreflection
-├── notebooks/              # See the tables above
+│   ├── propagation.py      # BFS propagation variant of the sign resolution
+│   └── constants.py        # Camera and physical constants
+├── notebooks/
+│   ├── sim.ipynb           # Simulation, end to end
+│   └── real.ipynb          # Real thermal video, end to end
 ├── scripts/
 │   ├── download_data.sh    # Fetch thermal videos and masks
 │   └── prepare_data.py     # Rename captures to the names the notebooks use
 ├── largesteps/             # Large-step optimization (bundled)
 ├── meshplot/               # Mesh visualization (bundled)
-├── objs/                   # Reference meshes for the simulations
-├── DATA/                   # Thermal videos, masks, simulation results
+├── objs/                   # Meshes for the simulation
+├── DATA/                   # Thermal videos and masks
 ├── results/                # Saved mesh sequences
 └── tb-logs/                # TensorBoard logs
 ```
@@ -190,14 +193,16 @@ shape-from-heat-conduction-and-shading/
 
 ## Camera Support
 
-The following FLIR thermal cameras are supported (configured in `lib/constants.py`):
+`CAMERA` at the top of `lib/constants.py` selects the radiometric constants used
+to turn raw counts into temperature, and it has to match the camera the
+recording came from — with the wrong one the conversion takes the log of a
+non-positive number and the whole pipeline becomes NaN without raising.
 
 | Camera | Description |
 |---|---|
+| `Boson-Colocated` | FLIR Boson, co-located with the light source — the default, and the setting the paper's runs used for the distributed recordings |
 | `Boson` | FLIR Boson |
 | `Boson+` | FLIR Boson+ |
-
-Set `CAMERA` at the top of `lib/constants.py` to match your hardware.
 
 ---
 

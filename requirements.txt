@@ -30,8 +30,5 @@ zstandard>=0.18.0
 tensorboard>=2.9.0
 jupyter>=1.0.0
 
-# Simulation only (optional)
-# mitsuba  -- install separately: https://mitsuba.readthedocs.io
-
 # Note: PyTorch with CUDA 11.6 should be installed separately using:
 # conda install pytorch==1.13.0 torchvision==0.14.0 torchaudio==0.13.0 pytorch-cuda=11.6 -c pytorch -c nvidia
