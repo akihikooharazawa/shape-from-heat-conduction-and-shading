@@ -14,7 +14,6 @@ import numpy as np
 CAMERA = 'Boson-Colocated'
 # CAMERA = 'Boson'
 # CAMERA = 'Boson+'
-# CAMERA = 'Boson+'
 FOCUS_DISTANCE: float = 368.3
 HFOV: float = 24.3  # degrees
 VFOV: float = 19.5  # degrees
