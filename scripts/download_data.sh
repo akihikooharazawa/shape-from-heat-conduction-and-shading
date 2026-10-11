@@ -1,34 +1,92 @@
 #!/bin/bash
-# Fetch the thermal videos and object masks used by notebooks/real.ipynb.
+# Fetch the thermal videos that notebooks/real.ipynb reads.
 #
-# bear, bunny, soda_can and sphere were captured for the shape-from-heat
-# dataset and are kept in its public folders, which are the defaults below.
-# heart, droplet and paintedbear were captured for this paper; point RAW_URL
-# and MASK_URL at the dataset folder for this project to get those as well.
+# The object masks ship with this repository, so only the recordings are
+# downloaded. They are attached to a GitHub release rather than committed,
+# because they are tens to hundreds of megabytes each.
 #
-#   RAW_URL=<drive folder> MASK_URL=<drive folder> ./scripts/download_data.sh
+#   ./scripts/download_data.sh                 # paintedbear, the default object
+#   ./scripts/download_data.sh bear sphere     # the objects you name
+#   ./scripts/download_data.sh --all           # every object
+#   ./scripts/download_data.sh --list          # what is available, and its size
 #
-# Afterwards the captures are renamed to the short names that
-# config/real_objects.py refers to (see SOURCE_RECORDINGS there).
+# REPO and TAG override where the files come from, e.g. to pull from a fork:
+#
+#   REPO=someone/their-fork TAG=data-v2 ./scripts/download_data.sh --all
 
 set -e
 cd "$(dirname "$0")/.."
 
-RAW_URL="${RAW_URL:-https://drive.google.com/drive/folders/1PBby4Sja-j1e8alLoX8eFvUw0BH-LCcd}"
-MASK_URL="${MASK_URL:-https://drive.google.com/drive/folders/1yelMdtds9VTstfxDjqux0K6vlZeAJyFQ}"
+REPO="${REPO:-akihikooharazawa/shape-from-heat-conduction-and-shading}"
+TAG="${TAG:-data-v1}"
+BASE="https://github.com/$REPO/releases/download/$TAG"
+DEST="DATA/obj_study_raw"
 
-if ! command -v gdown >/dev/null 2>&1; then
-    echo "gdown is required: pip install gdown" >&2
+if ! command -v curl >/dev/null 2>&1; then
+    echo "curl is required" >&2
     exit 1
 fi
 
-mkdir -p DATA/obj_study_raw DATA/obj_study_proc
+# Resolve object names to the recordings they need, straight from the config
+# the notebook uses, so the two can never drift apart.
+objects_for() {
+    python3 - "$@" <<'PY'
+import sys
+from config.real_objects import OBJECTS, get_config
 
-echo "Downloading thermal videos into DATA/obj_study_raw ..."
-gdown --folder "$RAW_URL" -O DATA/obj_study_raw
+args = sys.argv[1:]
+if not args or args == ["--default"]:
+    names = ["paintedbear"]
+elif args == ["--all"]:
+    names = sorted(OBJECTS)
+else:
+    unknown = [a for a in args if a not in OBJECTS]
+    if unknown:
+        sys.exit(f"unknown object(s): {', '.join(unknown)}; "
+                 f"choose from {', '.join(sorted(OBJECTS))}")
+    names = args
 
-echo "Downloading masks into DATA/obj_study_proc ..."
-gdown --folder "$MASK_URL" -O DATA/obj_study_proc
+wanted = []
+for name in names:
+    for video in get_config(name).videos:
+        if video not in wanted:
+            wanted.append(video)
+print("\n".join(wanted))
+PY
+}
+
+if [ "$1" = "--list" ]; then
+    echo "Objects: $(python3 -c 'from config.real_objects import OBJECTS; print(" ".join(sorted(OBJECTS)))')"
+    echo
+    for f in $(objects_for --all); do
+        size=$(curl -fsIL "$BASE/$f" 2>/dev/null \
+               | awk 'BEGIN{IGNORECASE=1} /^content-length:/{n=$2} END{print n+0}')
+        if [ "$size" -gt 0 ]; then
+            printf "  %-20s %6.1f MB\n" "$f" "$(echo "$size/1048576" | bc -l)"
+        else
+            printf "  %-20s not in release %s\n" "$f" "$TAG"
+        fi
+    done
+    exit 0
+fi
+
+mkdir -p "$DEST"
+files=$(objects_for "$@")
+
+echo "Downloading from $BASE into $DEST"
+for f in $files; do
+    if [ -s "$DEST/$f" ]; then
+        echo "  have     $f"
+        continue
+    fi
+    echo "  fetching $f"
+    # -C - resumes a partial file, so an interrupted run can just be repeated.
+    if ! curl -fL --retry 3 -C - --progress-bar -o "$DEST/$f" "$BASE/$f"; then
+        rm -f "$DEST/$f"
+        echo "  FAILED   $f  (not in release $TAG, or no network)" >&2
+    fi
+done
 
 echo
-python3 scripts/prepare_data.py
+echo "In $DEST:"
+ls -1sh "$DEST" | grep -v '^total' | grep -v '\.gitkeep' || echo "  (nothing yet)"

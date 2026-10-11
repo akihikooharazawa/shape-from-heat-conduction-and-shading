@@ -129,34 +129,33 @@ ssh -L 6006:localhost:6006 user@your-server
 
 ## Data
 
-`real.ipynb` needs one thermal video. The mask for the default object
-(`paintedbear`) is in this repository; the videos are not. To fetch them:
+The object masks are in this repository. The thermal videos are not — they are
+tens to hundreds of megabytes each — so they are attached to a GitHub release
+and fetched by:
 
 ```bash
-pip install gdown
-RAW_URL=<drive folder> MASK_URL=<drive folder> ./scripts/download_data.sh
+./scripts/download_data.sh              # paintedbear, the object real.ipynb opens with
+./scripts/download_data.sh bear sphere  # the objects you name
+./scripts/download_data.sh --all        # every object
+./scripts/download_data.sh --list       # what the release holds, and how large
 ```
+
+It reads which recordings an object needs from `config/real_objects.py`, so the
+script and the notebook cannot drift apart, and it skips anything already
+downloaded (an interrupted download resumes).
 
 `bear`, `bunny`, `soda_can` and `sphere` were captured for the
-[shape-from-heat](https://github.com/nnsriram97/shape-from-heat) dataset, whose
-public folders are the defaults in the script. `heart`, `droplet` and
-`paintedbear` were captured for this paper.
-
-The notebooks refer to each recording by a short name (`bear-0.npz`,
-`paintedbear.npz`, ...). `scripts/download_data.sh` ends by calling
-`scripts/prepare_data.py`, which renames the downloaded captures and their masks
-accordingly; `SOURCE_RECORDINGS` in `config/real_objects.py` records which
-capture each short name came from. Run it again at any time — it only touches
-files that are not already named correctly:
-
-```bash
-python3 scripts/prepare_data.py --dry-run
-```
+[shape-from-heat](https://github.com/nnsriram97/shape-from-heat) dataset;
+`heart`, `droplet` and `paintedbear` were captured for this paper. Each
+recording is distributed under a short name (`bear-0.npz`, `paintedbear.npz`,
+...); `SOURCE_RECORDINGS` in `config/real_objects.py` records which capture it
+came from, and `scripts/prepare_data.py` renames the original captures to those
+names if you obtained them some other way.
 
 | Location | Format | Description |
 |---|---|---|
-| `DATA/obj_study_raw/` | `.npz` or `.npz.zst` | Raw thermal video frames |
-| `DATA/obj_study_proc/` | `*_mask.png`, `*_mask.pkl` | Binary object mask |
+| `DATA/obj_study_raw/` | `.npz` or `.npz.zst` | Raw thermal video frames (downloaded) |
+| `DATA/obj_study_proc/` | `*_mask.png`, `*_mask.pkl` | Binary object mask, one per recording (in this repository) |
 | `DATA/obj_study_proc/` | `opti_results*.pkl` | Laplacian stage checkpoint, written by the first shape/temperature loop and read by later ones |
 | `objs/` | `.obj` | Meshes for `sim.ipynb` (`igea-60kf`, `concave_wave`); any `.obj` dropped here can be selected by `obj_name` |
 | `results/<obj>/` | `<exp_name>.pkl` | Mesh vertex sequence (`verts_seq`, `faces`) |
