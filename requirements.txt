@@ -1,6 +1,8 @@
-# Core deep learning
-torch==1.13.0
-pytorch3d==0.7.2
+# torch and pytorch3d are installed in steps 3 and 4 of the README, not by pip
+# from this file: pip would resolve a different CUDA build of torch, and
+# pytorch3d has no wheel on PyPI.
+#   torch==1.13.0
+#   pytorch3d==0.7.2
 
 # Scientific computing
 numpy==1.26.4
@@ -14,12 +16,16 @@ opencv-contrib-python>=4.5.5.64
 # Geometry
 libigl==2.5.1
 trimesh==3.23.5
+cholespy==2.1.0
 
 # Visualization
 matplotlib==3.9.4
 plotly==5.24.1
 ipywidgets>=7.7.0
 imageio==2.37.0
+pillow>=9.3.0
+pythreejs==2.4.2
+ipywebrtc==0.6.0
 
 # Utilities
 tqdm>=4.64.1
